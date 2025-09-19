@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Batch conversion helper for Docling.
+"""Auxiliar de conversão em lote para Docling.
 
-This script walks a directory (recursively) and invokes the globally installed
-`docling` CLI for every supported file it finds. The goal is to make it easy to
-pipe a knowledge base or any document tree into Docling without having to
-manually iterate over files.
+Este script percorre um diretório (recursivamente) e invoca o CLI `docling`
+globalmente instalado para cada arquivo suportado encontrado. O objetivo é
+facilitar o processamento de uma base de conhecimento ou árvore de documentos
+no Docling sem precisar iterar manualmente sobre os arquivos.
 
-Usage example:
-    python convert_directory.py /path/to/source --output /path/to/output
+Exemplo de uso:
+    python convert_directory.py /caminho/para/fonte --output /caminho/para/saida
 
-By default the script mirrors the directory structure under the chosen output
-root so that Docling's artefacts remain grouped by their originating folder.
+Por padrão, o script espelha a estrutura de diretórios sob a raiz de saída
+escolhida para que os artefatos do Docling permaneçam agrupados por pasta
+de origem.
 """
 
 from __future__ import annotations
@@ -31,7 +32,7 @@ except ImportError:  # pragma: no cover - fallback for environments without colo
     Fore = Style = _DummyColor()  # type: ignore
 
     def colorama_init(*_args, **_kwargs) -> None:  # type: ignore
-        print("colorama não encontrado. Instale com 'pip install colorama' para saída colorida.")
+        print("Colorama não encontrado. Instale com 'pip install colorama' para saída colorida.")
 
 try:
     from tqdm import tqdm
@@ -44,20 +45,17 @@ except ImportError:  # pragma: no cover - fallback for environments without tqdm
         print(message)
 
     tqdm.write = _tqdm_write  # type: ignore[attr-defined]
-    print("tqdm não encontrado. Instale com 'pip install tqdm' para barra de progresso.")
+    print("Tqdm não encontrado. Instale com 'pip install tqdm' para barra de progresso.")
 
 try:
     import tkinter as tk
     from tkinter import messagebox, simpledialog
-except Exception:  # pragma: no cover - GUI not always available
+except Exception:  # pragma: no cover - Interface gráfica nem sempre disponível
     tk = None
     messagebox = None
     simpledialog = None
 
-# Docling supports several input families. The CLI autodetects formats, so the
-# list below mainly filters out obvious non-document artefacts (e.g. binaries
-# with extensions Docling cannot parse). Extend the list if your workload
-# contains additional suffixes handled by Docling.
+# Extensões suportadas
 SUPPORTED_SUFFIXES = {
     ".pdf",
     ".doc",
@@ -86,34 +84,34 @@ SUPPORTED_SUFFIXES = {
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Batch convert files with Docling")
+    parser = argparse.ArgumentParser(description="Converter arquivos em lote com Docling")
     parser.add_argument(
         "source",
         type=Path,
         nargs="?",
-        help="File or directory that should be processed. Directories are traversed recursively.",
+        help="Arquivo ou diretório que deve ser processado. Diretórios são percorridos recursivamente.",
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=Path("docling-output"),
-        help="Directory where Docling should place converted artefacts.",
+        help="Diretório onde o Docling deve colocar os artefatos convertidos.",
     )
     parser.add_argument(
         "--to",
         nargs="?",
         default=None,
-        help="Optional Docling output format (e.g. md, json). Defaults to Docling's standard setting.",
+        help="Formato de saída opcional do Docling (ex: md, json). Usa a configuração padrão do Docling.",
     )
     parser.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Skip processing when Docling already produced artefacts for a file.",
+        help="Pula o processamento quando o Docling já produziu artefatos para um arquivo.",
     )
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Print Docling's stdout/stderr for each processed file.",
+        help="Imprime stdout/stderr do Docling para cada arquivo processado.",
     )
     return parser.parse_args()
 
@@ -130,7 +128,7 @@ def iter_input_files(source: Path) -> Iterable[Path]:
 
 def prompt_for_directory_cli() -> Path:
     while True:
-        user_input = input("Qual caminho do diretório? ").strip()
+        user_input = input("Qual o caminho do diretório? ").strip()
         if not user_input:
             print(f"{Fore.YELLOW}Um caminho é necessário.{Style.RESET_ALL}")
             continue
@@ -148,13 +146,13 @@ def prompt_for_directory_gui() -> Path:
 
     root = tk.Tk()
     root.withdraw()
-    selected_path: Path | None = None
 
     try:
+        selected_path = None
         while selected_path is None:
             user_input = simpledialog.askstring(
                 title="Docling",
-                prompt="Qual caminho do diretório?",
+                prompt="Qual o caminho do diretório?",
                 parent=root,
             )
 
@@ -212,11 +210,11 @@ def write_failure_report(failed_files: Iterable[Path], output_root: Path) -> Pat
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     with report_path.open("w", encoding="utf-8") as report_file:
-        report_file.write("Files that failed conversion:\n")
+        report_file.write("Arquivos que falharam na conversão:\n")
         for file_path in failed_files:
             report_file.write(f"{file_path}\n")
 
-    tqdm.write(f"{Fore.YELLOW}Failure report written to {report_path}{Style.RESET_ALL}")
+    tqdm.write(f"{Fore.YELLOW}Relatório de falhas escrito em {report_path}{Style.RESET_ALL}")
     return report_path
 
 
@@ -230,7 +228,7 @@ def convert_files(
 ) -> List[Path]:
     failures: List[Path] = []
 
-    for file_path in tqdm(files, desc="Converting", unit="file", ncols=80):
+    for file_path in tqdm(files, desc="Convertendo", unit="arquivo", ncols=80):
         relative_parent = Path()
         if source.is_dir():
             try:
@@ -264,7 +262,7 @@ def run_docling(input_file: Path, output_dir: Path, output_format: str | None, v
         result = subprocess.run(cmd, capture_output=True, text=True)
     except FileNotFoundError:
         tqdm.write(
-            f"{Fore.RED}Docling CLI was not found on PATH. Install docling and retry.{Style.RESET_ALL}"
+            f"{Fore.RED}CLI do Docling não encontrado no PATH. Instale o docling e tente novamente.{Style.RESET_ALL}"
         )
         return False
 
@@ -276,7 +274,7 @@ def run_docling(input_file: Path, output_dir: Path, output_format: str | None, v
 
     if result.returncode != 0:
         tqdm.write(
-            f"{Fore.RED}Docling failed for {input_file}: exit code {result.returncode}{Style.RESET_ALL}"
+            f"{Fore.RED}Docling falhou para {input_file}: código de saída {result.returncode}{Style.RESET_ALL}"
         )
         if not verbose and result.stderr:
             tqdm.write(result.stderr.rstrip())
@@ -292,12 +290,12 @@ def main() -> int:
     output_root = args.output.expanduser().resolve()
 
     if not source.exists():
-        print(f"{Fore.RED}Source path {source} does not exist.{Style.RESET_ALL}", file=sys.stderr)
+        print(f"{Fore.RED}Caminho de origem {source} não existe.{Style.RESET_ALL}", file=sys.stderr)
         return 1
 
     files = list(iter_input_files(source))
     if not files:
-        print(f"{Fore.YELLOW}No supported files found to process.{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}Nenhum arquivo suportado encontrado para processar.{Style.RESET_ALL}")
         return 0
 
     output_root.mkdir(parents=True, exist_ok=True)
@@ -314,12 +312,12 @@ def main() -> int:
     if failures:
         report_path = write_failure_report(failures, output_root)
         print(
-            f"{Fore.RED}Finished with {len(failures)} failure(s). See {report_path} for details.{Style.RESET_ALL}",
+            f"{Fore.RED}Finalizado com {len(failures)} falha(s). Veja {report_path} para detalhes.{Style.RESET_ALL}",
             file=sys.stderr,
         )
         return 2
 
-    print(f"{Fore.GREEN}Conversion completed successfully.{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Conversão concluída com sucesso.{Style.RESET_ALL}")
     return 0
 
 
