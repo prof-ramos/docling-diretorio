@@ -5,12 +5,15 @@ Este projeto fornece ferramentas para conversão em lote de documentos usando o 
 ## Funcionalidades
 
 - **Conversão em lote**: Processa diretórios inteiros recursivamente
+- **Interface Web**: Interface Streamlit moderna e intuitiva
 - **Interface CLI**: Comando direto via linha de comando
 - **Interface interativa**: CLI guiada para seleção de diretórios
+- **Upload de arquivos**: Suporte a drag-and-drop na interface web
 - **Suporte a múltiplos formatos**: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, CSV, MD, TXT, HTML, XML, imagens e áudio
 - **Relatório de falhas**: Gera relatório de arquivos que falharam na conversão
-- **Barra de progresso**: Visualização do progresso com tqdm (opcional)
+- **Barra de progresso**: Visualização do progresso em tempo real
 - **Saída colorida**: Mensagens coloridas com colorama (opcional)
+- **Download direto**: Baixe arquivos convertidos diretamente da interface web
 
 ## Instalação
 
@@ -32,7 +35,20 @@ pip install docling tqdm colorama
 
 ## Uso
 
-### Interface Interativa (Recomendado para iniciantes)
+### Interface Web Streamlit (Recomendado)
+
+```bash
+streamlit run app.py
+```
+
+A interface web fornece uma experiência amigável com:
+- 🖱️ Interface drag-and-drop para arquivos
+- 📁 Seleção de diretório local
+- 📊 Barra de progresso em tempo real
+- 🎨 Tema responsivo e moderno
+- 📥 Download direto dos arquivos convertidos
+
+### Interface Interativa CLI (Para usuários avançados)
 
 ```bash
 python interactive_cli.py
@@ -100,6 +116,8 @@ diretorio_saida/
 - **tqdm**: Barra de progresso visual
 - **colorama**: Saída colorida no terminal
 - **tkinter**: Interface gráfica para seleção de diretórios (Linux/Mac)
+- **streamlit**: Interface web moderna
+- **streamlit-extras**: Componentes extras para Streamlit
 
 ## Desenvolvimento
 
@@ -118,10 +136,13 @@ ruff format .
 
 ### Estrutura do projeto
 
+- `app.py`: Interface web Streamlit (principal)
 - `convert_directory.py`: Script principal de conversão
-- `interactive_cli.py`: Interface interativa
+- `interactive_cli.py`: Interface interativa CLI
 - `run.sh`: Script de inicialização automatizada
 - `AGENTS.md`: Diretrizes para agentes de codificação
+- `pyproject.toml`: Configuração do projeto e dependências
+- `.coderabbit.yaml`: Configuração do CodeRabbit para revisões automatizadas
 
 ## Licença
 
